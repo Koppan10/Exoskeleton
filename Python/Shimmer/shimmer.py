@@ -1,114 +1,183 @@
 #!/usr/bin/python3
+
 import sys
+
 import struct
+
 import serial
 
+ 
+
 def wait_for_ack():
-   ddata = b""
-   ack = struct.pack('B', 0xff)
-   while ddata != ack:
-      ddata = ser.read(1)
-   return
+
+    ddata = b""
+
+    ack = struct.pack('B', 0xff)
+
+    while ddata != ack:
+
+        ddata = ser.read(1)
+
+    return
+
+ 
+
+# Function to convert the gain setting to gain value
+
+def convert_exg_gain_setting_to_value(setting):
+
+    if setting == 0:
+
+        return 6
+
+    elif setting == 1:
+
+        return 1
+
+    elif setting == 2:
+
+        return 2
+
+    elif setting == 3:
+
+        return 3
+
+    elif setting == 4:
+
+        return 4
+
+    elif setting == 5:
+
+        return 8
+
+    elif setting == 6:
+
+        return 12
+
+    else:
+
+        return -1  # -1 means an invalid value
+
+ 
+
+# Declare a bytearray to store configuration or gain settings
+
+exg1_reg_array = bytearray(10)
+
+ 
 
 if len(sys.argv) < 2:
-   print("No device specified.")
+
+    print("No device specified.")
 
 else:
-   ser = serial.Serial(sys.argv[1], 115200)
-   ser.reset_input_buffer()
-   print("Port open...")
 
+    ser = serial.Serial(sys.argv[1], 115200)
 
-   # send start streaming command
-   ser.write(struct.pack('B', 0x07))
-   wait_for_ack()
-   print("Start sent...")
+    ser.reset_input_buffer()
 
-   # read incoming data
-   ddata = b""
-   numbytes = 0
-   framesize = 18  # 1byte packet type + 2byte timestamp + 14byte ExG data
+    print("Port open...")
 
-   print("Packet Type,Timestamp,Chip1 Status,Chip1 Channel1,Chip1 Channel2,Chip2 Status,Chip2 Channel1,Chip2 Channel2")
-   try:
-      while True:
-         while numbytes < framesize:
-            ddata += ser.read(framesize)
-            numbytes = len(ddata)   
+ 
 
-         data = ddata[0:framesize]
-         ddata = ddata[framesize:]
-         numbytes = len(ddata)
+    # send start streaming command
 
-         (packettype,) = struct.unpack('B', data[0:1])
+    ser.write(struct.pack('B', 0x07))
 
-         # (timestamp, c1status) = struct.unpack('HB', data[1:4])
-         (ts0, ts1, ts2, c1status) = struct.unpack('BBBB', data[1:5])
-         timestamp = ts0 + ts1 * 256 + ts2 * 65536
-         # 24-bit signed values MSB values are tricky, as struct only supports 16-bit or 32-bit
-         # pad with zeroes at LSB end and then shift the result
+    wait_for_ack()
 
-         c1ch1 = struct.unpack('>i', (data[5:8] + b'\0'))[0] >> 8
-         c1ch2 = struct.unpack('>i', (data[8:11] + b'\0'))[0] >> 8
-        # (c2status,) = struct.unpack('B', data[11])
-         # Change this line:
-         # (c2status,) = struct.unpack('B', data[11])
-            # To this line:
-         c2status = struct.unpack('B', data[11:12])[0]
-         c2ch1 = struct.unpack('>i', (data[12:15] + b'\0'))[0] >> 8
-         c2ch2 = struct.unpack('>i', (data[15:18] + b'\0'))[0] >> 8
-         print("0x%02x,%06x,\t0x%02x,%8d,%8d,\t0x%02x,%8d,%8d" % (
-         packettype, timestamp, c1status, c1ch1, c1ch2, c2status, c2ch1, c2ch2))
+    print("Start sent...")
 
-         #Convert ddata to mV
-         # Physical Quantity (in mV) = (Raw Data * Scaling Factor) + Offset
+ 
 
-   except KeyboardInterrupt:
-      # send stop streaming command
-      ser.write(struct.pack('B', 0x20))
-      wait_for_ack()
-      # close serial port
-      ser.close()
-      print()
-      print("All done!")
+    # read incoming data
 
+    ddata = b""
 
-#####################################################################################
-'''
+    numbytes = 0
 
-try:
-    while True:
-        while numbytes < framesize:
-            ddata += ser.read(framesize)
+    framesize = 18  # 1-byte packet type + 2-byte timestamp + 14-byte ExG data
+
+ 
+
+    print("Packet Type,Timestamp,Chip1 Status,Chip1 Channel1,Chip1 Channel2,Chip2 Status,Chip2 Channel1,Chip2 Channel2")
+
+    try:
+
+        while True:
+
+            while numbytes < framesize:
+
+                ddata += ser.read(framesize)
+
+                numbytes = len(ddata)
+
+ 
+
+            data = ddata[0:framesize]
+
+            ddata = ddata[framesize:]
+
             numbytes = len(ddata)
 
-        data = ddata[0:framesize]
-        ddata = ddata[framesize:]
-        numbytes = len(ddata)
+ 
 
-        (packettype,) = struct.unpack('B', data[0:1])
+            (packettype,) = struct.unpack('B', data[0:1])
 
-        # (timestamp, c1status) = struct.unpack('HB', data[1:4])
-        (ts0, ts1, ts2, c1status) = struct.unpack('BBBB', data[1:5])
-        timestamp = ts0 + ts1 * 256 + ts2 * 65536
+ 
 
-        # Convert raw data to millivolts
-        c1ch1_raw = struct.unpack('>i', (data[5:8] + b'\0'))[0] >> 8
-        c1ch2_raw = struct.unpack('>i', (data[8:11] + b'\0'))[0] >> 8
+            (ts0, ts1, ts2, c1status) = struct.unpack('BBBB', data[1:5])
 
-        c1ch1_mV = (c1ch1_raw * scaling_factor_c1ch1) + offset_c1ch1
-        c1ch2_mV = (c1ch2_raw * scaling_factor_c1ch2) + offset_c1ch2
+            timestamp = ts0 + ts1 * 256 + ts2 * 65536
 
-        (c2status,) = struct.unpack('B', data[11])
+ 
 
-        c2ch1_raw = struct.unpack('>i', (data[12:15] + b'\0'))[0] >> 8
-        c2ch2_raw = struct.unpack('>i', (data[15:18] + b'\0'))[0] >> 8
+            c1ch1_raw = struct.unpack('>i', (data[5:8] + b'\0'))[0] >> 8
 
-        # You can add similar conversions for other channels if needed.
+            c1ch2_raw = struct.unpack('>i', (data[8:11] + b'\0'))[0] >> 8
 
-        print("Packet Type: 0x%02x, Timestamp: %06x" % (packettype, timestamp))
-        print("Channel 1 (mV):", c1ch1_mV)
-        print("Channel 2 (mV):", c1ch2_mV)
-        print("Channel 1 Status: 0x%02x, Channel 2 Status: 0x%02x" % (c1status, c2status))
-'''
-        
+ 
+
+            c2status = struct.unpack('B', data[11:12])[0]
+
+            c2ch1_raw = struct.unpack('>i', (data[12:15] + b'\0'))[0] >> 8
+
+            c2ch2_raw = struct.unpack('>i', (data[15:18] + b'\0'))[0] >> 8
+
+ 
+
+            # Calculate the gain based on exg1_reg_array and apply it
+
+            gain = convert_exg_gain_setting_to_value((exg1_reg_array[3] >> 4) & 7)
+
+            c1ch1_mV = (c1ch1_raw * ((2.42 * 1000) / gain)) / (2 ** 23 - 1)
+
+            c1ch2_mV = (c1ch2_raw * ((2.42 * 1000) / gain)) / (2 ** 23 - 1)
+
+            c2ch1_mV = (c2ch1_raw * ((2.42 * 1000) / gain)) / (2 ** 23 - 1)
+
+            c2ch2_mV = (c2ch2_raw * ((2.42 * 1000) / gain)) / (2 ** 23 - 1)
+
+ 
+
+            print("0x%02x,%06x,\t0x%02x,%8.2f,%8.2f,\t0x%02x,%8.2f,%8.2f" % (
+
+                packettype, timestamp, c1status, c1ch1_mV, c1ch2_mV, c2status, c2ch1_mV, c2ch2_mV))
+
+ 
+
+    except KeyboardInterrupt:
+
+        # send stop streaming command
+
+        ser.write(struct.pack('B', 0x20))
+
+        wait_for_ack()
+
+        # close serial port
+
+        ser.close()
+
+        print()
+
+        print("All done!")
