@@ -1,0 +1,15 @@
+2023-10-10
+
+
+Data collection pressing the button: Bicep muscle contraction with weight. Weight is a small motor about 1,5-2 kg.  Subject contract muscle with the same power approximately.
+
+
+Sample frequency 1024 Hz
+
+Duration about 2 min
+
+Subject start with 20 sec relaxing 
+
+Directly after 5 sec flexing and 5 sec relaxig repeatedly until reaching 2 minuts duration.
+
+Shimmer time stamps and ch2 exported

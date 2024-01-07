@@ -1,0 +1,13 @@
+2023-10-03
+
+Data collection without pressing the button: Bicep muscle contraction
+
+Sample frequency 1024 Hz
+
+Duration about 2 min
+
+Subject start with 20 sec relaxing 
+
+Directly after 5 sec flexing and 5 sec relaxig repeatedly until reaching 2 minuts duration.
+
+Shimmer time stamps, status, ch1 and ch2 exported

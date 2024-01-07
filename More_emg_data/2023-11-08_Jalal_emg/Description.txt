@@ -1,0 +1,16 @@
+Data collection pressing the button: Bicep muscle contraction of different loads justin weights in C2. Male subject. Maximal voluntary contraction (mvc)
+ 
+Sample frequency 1024 Hz
+ 
+Duration approximately 2 min each
+ 
+Subject start with 10 sec relaxing 
+ 
+Directly after 5 sec flexing and 10 sec relaxig repeatedly until reaching 2 minuts duration.
+ 
+Shimmer time stamps and ch2 exported
+
+
+Session1-Session6: The titles of each .txt file specifies the weight used of each recording.
+Session7 and Session8: Session 7 is 30 seconds recording of the subject doing nothing
+			Session 8 is 30 seconds recording of the subject contracting without any weight.

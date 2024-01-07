@@ -1,0 +1,13 @@
+2023-10-30
+
+Data collection pressing the button: Bicep muscle contraction. Subject contract muscle randomly between intervals with no weight and different scales of weights from 1-5 kg.
+
+Sample frequency 1024 Hz
+
+3 different trials each one with different duration. Duration stated on the name of text file.
+
+Subject start with 20 sec relaxing 
+
+Directly after random muscle contraction.
+
+Shimmer time stamps and ch2 exported
